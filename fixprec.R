@@ -5,13 +5,13 @@
 #    in subpopulations" 
 # (submitted to Communications in Statistics - Theory and Methods)
 #
-# actualization date: 24.02.2015
+# actualization date: 27.02.2015
 #
 
 
 fixprec_HR_SRSWOR_n<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
                             z_jhi="z_jhi",t_jhi="t_jhi",S2_jhi="S2_jhi",
-                            omega_jhi="omega_jhi",T_j="T_j", gamma_jh="gamma_jh",mcv=NA)
+                            omega_jhi="omega_jhi",T_j="T_j", gamma_jh="gamma_jh",mcv=NULL)
 #
 # Function for equal-precision optimal allocation in subpopulations in two-stage 
 # sampling with Hartley-Rao pi-ps scheme at the first stage and the SRSWOR 
@@ -46,7 +46,7 @@ fixprec_HR_SRSWOR_n<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   
   kappa<-as.data.frame(table(data[[J]]))
   names(kappa)<-c(J,"kappa")
-  if (!is.na(mcv)) kappa$kappa<-mcv^2
+  if (!is.null(mcv)) kappa$kappa<-mcv^2
   else kappa$kappa<-1
   
   stopifnot(all(data[[gamma_jh]]>0))
@@ -130,7 +130,7 @@ fixprec_HR_SRSWOR_n<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
 
 fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
                      z_jhi="z_jhi",t_jhi="t_jhi",S2_jhi="S2_jhi",
-                     omega_jhi="omega_jhi",T_j="T_j", gamma_jh="gamma_jh",mcv=NA)
+                     omega_jhi="omega_jhi",T_j="T_j", gamma_jh="gamma_jh",mcv=NULL)
 #
 # Function for equal-precision optimal allocation in subpopulations in two-stage 
 # sampling with Hartley-Rao pi-ps scheme at the first stage and the SRSWOR 
@@ -164,7 +164,7 @@ fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   
   kappa<-as.data.frame(table(data[[J]]))
   names(kappa)<-c(J,"kappa")
-  if (!is.na(mcv)) kappa$kappa<-mcv^2
+  if (!is.null(mcv)) kappa$kappa<-mcv^2
   else kappa$kappa<-1
   
   stopifnot(all(data[[gamma_jh]]>0))
@@ -254,7 +254,7 @@ fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
 
 
 
-fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=NA)
+fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=NULL)
 #
 # Function for equal-precision optimal allocation in single-stage sampling
 # with subpopulations and strata, see Theorem 2.3 in the article
@@ -278,7 +278,7 @@ fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=
   
   kappa<-as.data.frame(table(data[[J]]))
   names(kappa)<-c(J,"kappa")
-  if (!is.na(mcv)) kappa$kappa<-mcv^2
+  if (!is.null(mcv)) kappa$kappa<-mcv^2
   else kappa$kappa<-1
   
     
