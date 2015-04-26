@@ -5,7 +5,7 @@
 #    in subpopulations" 
 # (submitted to Communications in Statistics - Theory and Methods)
 #
-# actualization date: 27.02.2015
+# actualization date: 26.04.2015
 #
 
 
@@ -254,7 +254,7 @@ fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
 
 
 
-fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=NULL)
+fixprec_SRSWOR<-function(n,data,J="sub",H="h",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=NULL)
 #
 # Function for equal-precision optimal allocation in single-stage sampling
 # with subpopulations and strata, see Theorem 2.3 in the article
@@ -263,6 +263,7 @@ fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=
 #   n - sample size
 #   data - data frame with input information for each stratum and subpopulation
 #   J - name of the variable denoting subpopulations
+#   H - name of the variable denoting strata
 #   N_jh - name of the variable with population sizes 
 #   S2_jh - name of the variable with population variances of surveyed variable
 #   t_j - name of the variable with totals of surveyed variable in subpopulations
@@ -296,8 +297,8 @@ fixprec_SRSWOR<-function(n,data,J="sub",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j",mcv=
 
   a<-matrix(A_j,length(A_j),1)
   
-  D.matrix<-(1/n)*(a%*%t(a))- diag(c)
-  
+  if ((nrow(diag(c))>1)) D.matrix<-(1/n)*(a%*%t(a))- diag(c)
+  else D.matrix<-(1/n)*(a%*%t(a))- c
   
   m1<-eigen(D.matrix)
   # must be unique positive eigenvalue
