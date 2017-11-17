@@ -6,7 +6,7 @@
 # DOI: 10.1080/03610926.2015.1040501
 # To link to this article: http://dx.doi.org/10.1080/03610926.2015.1040501
 #
-# actualization date: 28.12.2016
+# actualization date: 17.11.2017
 #
 
 
@@ -90,10 +90,13 @@ fixprec_HR_SRSWOR_n<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   lambda<-lambda[lambda>0]
   #print(lambda)
   #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution do not exists !")
+  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
   
   cv_optimal<-m1$values[1]  # maximum eigenvalue
-  cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
+  #cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
+  cat("CV optimal (in %) for subpopulations:  \n ")
+  print(  cbind(kappa[[J]],round(100*sqrt(kappa$kappa*cv_optimal),2)) )
+  
   v<-(-m1$vectors[,1])  # corresponding eigenvector
   #sum(v)
   
@@ -213,10 +216,13 @@ fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   lambda<-lambda[lambda>0]
   #print(lambda)
   #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution do not exists !")
+  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
   
   cv_optimal<-m1$values[1]  # maximum eigenvalue
-  cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
+  #cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
+  cat("CV optimal (in %) for subpopulations:  \n ")
+  print(  cbind(kappa[[J]],round(100*sqrt(kappa$kappa*cv_optimal),2)) )
+  
   v<-(-m1$vectors[,1])  # corresponding eigenvector
   #sum(v)
   
@@ -307,10 +313,13 @@ fixprec_SRSWOR<-function(n,data,J="sub",H="h",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j
   lambda<-lambda[lambda>0]
   print(lambda)
   #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution do not exists !")
+  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
   
   cv_opt<-m1$values[1]  # maximum eigenvalue
-  cat("cV optimal (in %)  = ",100*sqrt(cv_opt),"\n") 
+  #cat("cV optimal (in %)  = ",100*sqrt(cv_opt),"\n") 
+  cat("CV optimal (in %) for subpopulations:  \n ")
+  print(  cbind(kappa[[J]],round(100*sqrt(kappa$kappa*cv_optimal),2)) )
+  
   v<-(-m1$vectors[,1])  # corresponding eigenvalue
   
   v<-v*(n/as.numeric((t(a)%*%v)))
