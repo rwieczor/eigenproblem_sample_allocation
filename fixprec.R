@@ -84,13 +84,12 @@ fixprec_HR_SRSWOR_n<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   if (nrow(c_j)>1) D.matrix<-a_j%*%t(a_j) + b_j%*%t(b_j) - diag(c_j$c_j)
   else D.matrix<-a_j%*%t(a_j) + b_j%*%t(b_j) - c_j$c_j
   
-  m1<-eigen(D.matrix)
-  # must be unique positive eigenvalue
-  lambda<-m1$values
-  lambda<-lambda[lambda>0]
-  #print(lambda)
-  #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
+ m1 <- eigen(D.matrix, symmetric = TRUE)
+ lambda <- m1$values[1] # largest eigenvalue
+ if (lambda <= 0) {
+    stop("Largest eigenvalue is not strictly positive - solution does not exist!")
+ }
+
   
   cv_optimal<-m1$values[1]  # maximum eigenvalue
   #cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
@@ -210,13 +209,12 @@ fixprec_HR_SRSWOR<-function(m,n,data,J="sub",H="h",N_jhi="N_jhi",M_jh="M_jh",
   if (nrow(c_j)>1) D.matrix<-a_j%*%t(a_j) + b_j%*%t(b_j) - diag(c_j$c_j)
   else D.matrix<-a_j%*%t(a_j) + b_j%*%t(b_j) - c_j$c_j
   
-  m1<-eigen(D.matrix)
-  # must be unique positive eigenvalue
-  lambda<-m1$values
-  lambda<-lambda[lambda>0]
-  #print(lambda)
-  #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
+ m1 <- eigen(D.matrix, symmetric = TRUE)
+ lambda <- m1$values[1] # largest eigenvalue
+ if (lambda <= 0) {
+    stop("Largest eigenvalue is not strictly positive - solution does not exist!")
+ }
+
   
   cv_optimal<-m1$values[1]  # maximum eigenvalue
   #cat("CV optimal (in %) = ",100*sqrt(cv_optimal),"\n") 
@@ -307,14 +305,12 @@ fixprec_SRSWOR<-function(n,data,J="sub",H="h",N_jh="N_jh",S2_jh="S2_jh",t_j="t_j
   if ((nrow(diag(c))>1)) D.matrix<-(1/n)*(a%*%t(a))- diag(c)
   else D.matrix<-(1/n)*(a%*%t(a))- c
   
-  m1<-eigen(D.matrix)
-  # must be unique positive eigenvalue
-  lambda<-m1$valuesa
-  lambda<-lambda[lambda>0]
-  print(lambda)
-  #print(length(lambda))
-  if (length(lambda)>1) stop("Positive eigenvalue is not unique - solution does not exist !")
-  
+  m1 <- eigen(D.matrix, symmetric = TRUE)
+  lambda <- m1$values[1] # largest eigenvalue
+  if (lambda <= 0) {
+    stop("Largest eigenvalue is not strictly positive - solution does not exist!")
+  }
+
   cv_opt<-m1$values[1]  # maximum eigenvalue
   #cat("cV optimal (in %)  = ",100*sqrt(cv_opt),"\n") 
   cat("CV optimal (in %) for subpopulations:  \n ")
