@@ -85,60 +85,6 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
   }
 }
 
-#' Check KKT conditions for FIXPREC problem.
-#'
-#' @return If `details` is `FALSE`, it returns optimal value of T
-#'  (if all constraints are satisfied) or `NA` (if any of the constraints is not satisfied).
-#'  If `details` is `TRUE`, a detailed constraints check is returned.
-#'
-#' @examples
-#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
-#' N <- c(140, 110, 135, 190)
-#' S <- sqrt(c(180, 20, 5, 4))
-#' total <- c(2, 3)
-#' kappa <- c(0.4, 0.6)
-#' (n <- nmax(J, N, S) - 1)
-#'
-#' (x <- fixprec(n, J, N, S, total, kappa))
-#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = FALSE)
-#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = TRUE)
-check_kkt <- function(n_opt, J, N, S, total, kappa, n, active, s, tol = 10^-9, details = FALSE) {
-  Ti_notscaled <- tapply(N^2 / n_opt * S^2 - N * S^2, J, sum)
-  Ti <- Ti_notscaled / total^2
-  T_opt <- sum(Ti_notscaled) / sum(total^2 * kappa)
-
-  is_Ti_eq_kappa_T <- Ti - kappa * T_opt < tol
-  is_sum_nopt_eq_n <- sum(n_opt) - n < tol
-  n_ih_leq_N <- n_opt <= N
-
-  # check if mu_ih is non-negative for active constraints
-  is_mu_ih_nonneg <- if (is.null(active)) {
-    TRUE
-  } else {
-    rho <- total * sqrt(kappa)
-    A <- (N * S) / rep(rho, times = table(J))
-    s <- rep(s, times = table(J))
-    all((s >= N / A)[active])
-  }
-
-  if (details) {
-    list(
-      T_opt = T_opt,
-      Ti = Ti,
-      is_Ti_eq_kappa_T = is_Ti_eq_kappa_T,
-      is_sum_nopt_eq_n = is_sum_nopt_eq_n,
-      n_ih_leq_N = n_ih_leq_N,
-      is_mu_ih_nonneg = is_mu_ih_nonneg
-    )
-  } else {
-    if (all(is_Ti_eq_kappa_T, is_sum_nopt_eq_n, n_ih_leq_N, is_mu_ih_nonneg)) {
-      T_opt
-    } else {
-      NA_real_
-    }
-  }
-}
-
 #' Recursive FIXPREC algorithm (for 2 domains only)
 #'
 #' @examples
@@ -207,11 +153,77 @@ rfixprec <- function(n, J, N, S, total, kappa = NULL, domain = 1L) {
   list(n_ih = x, s_i = s_i, active = active_temp)
 }
 
-# Maximum allowed total sample size (see (16) from JW 2019), usually less than sum(N).
+#' Maximum allowed total sample size
+#'
+#' @details
+#' See (16) from JW 2019. It is usually less than sum(N).
+#'
+#' @examples
+#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' N <- c(140, 110, 135, 190)
+#' S <- sqrt(c(180, 20, 5, 4))
+#' sum(N)
+#' nmax(J, N, S)
+#'
 nmax <- function(J, N, S) {
   n_bound <- sum(tapply(N * S, J, sum)^2 / tapply(N * S^2, J, sum))
   n_bound_floor <- floor(n_bound)
   ifelse(n_bound == n_bound_floor, n_bound - 1, n_bound_floor)
+}
+
+#' Check KKT conditions for FIXPREC problem.
+#'
+#' @return If `details` is `FALSE`, it returns optimal value of T
+#'  (if all constraints are satisfied) or `NA` (if any of the constraints is not satisfied).
+#'  If `details` is `TRUE`, a detailed constraints check is returned.
+#'
+#' @examples
+#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' N <- c(140, 110, 135, 190)
+#' S <- sqrt(c(180, 20, 5, 4))
+#' total <- c(2, 3)
+#' kappa <- c(0.4, 0.6)
+#' (n <- nmax(J, N, S) - 1)
+#'
+#' (x <- fixprec(n, J, N, S, total, kappa))
+#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = FALSE)
+#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = TRUE)
+#'
+check_kkt <- function(n_opt, J, N, S, total, kappa, n, active, s, tol = 10^-9, details = FALSE) {
+  Ti_notscaled <- tapply(N^2 / n_opt * S^2 - N * S^2, J, sum)
+  Ti <- Ti_notscaled / total^2
+  T_opt <- sum(Ti_notscaled) / sum(total^2 * kappa)
+
+  is_Ti_eq_kappa_T <- Ti - kappa * T_opt < tol
+  is_sum_nopt_eq_n <- sum(n_opt) - n < tol
+  n_ih_leq_N <- n_opt <= N
+
+  # check if mu_ih is non-negative for active constraints
+  is_mu_ih_nonneg <- if (is.null(active)) {
+    TRUE
+  } else {
+    rho <- total * sqrt(kappa)
+    A <- (N * S) / rep(rho, times = table(J))
+    s <- rep(s, times = table(J))
+    all((s >= N / A)[active])
+  }
+
+  if (details) {
+    list(
+      T_opt = T_opt,
+      Ti = Ti,
+      is_Ti_eq_kappa_T = is_Ti_eq_kappa_T,
+      is_sum_nopt_eq_n = is_sum_nopt_eq_n,
+      n_ih_leq_N = n_ih_leq_N,
+      is_mu_ih_nonneg = is_mu_ih_nonneg
+    )
+  } else {
+    if (all(is_Ti_eq_kappa_T, is_sum_nopt_eq_n, n_ih_leq_N, is_mu_ih_nonneg)) {
+      T_opt
+    } else {
+      NA_real_
+    }
+  }
 }
 
 # List with all possible subsets of J,
