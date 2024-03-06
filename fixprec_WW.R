@@ -1,17 +1,17 @@
 #' Function for equal-precision optimal allocation in single-stage sampling
-#' with sub-populations and strata, see Theorem 2.3 in the article
+#' with domains and strata in domains.
 #'
 #' @param n total sample size
-#' @param J vector with sub-populations labels
+#' @param J vector with domains labels
 #' @param N population sizes
 #' @param S population standard deviations of surveyed variable
-#' @param total totals of surveyed variable in sub-populations
-#' @param kappa priority weights for sub-populations
+#' @param total totals of surveyed variable in domains
+#' @param kappa priority weights for domains
 #' @param active user supplied take-max strata set, indices of J.
 #' @param short short output
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
@@ -88,7 +88,7 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
 #' Recursive FIXPREC algorithm (for 2 domains only)
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
@@ -159,7 +159,7 @@ rfixprec <- function(n, J, N, S, total, kappa = NULL, domain = 1L) {
 #' See (16) from JW 2019. It is usually less than sum(N).
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' sum(N)
@@ -178,7 +178,7 @@ nmax <- function(J, N, S) {
 #'  If `details` is `TRUE`, a detailed constraints check is returned.
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two sub-populations with 2 strata each.
+#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
