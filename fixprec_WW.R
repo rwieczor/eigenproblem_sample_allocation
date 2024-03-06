@@ -29,6 +29,10 @@
 #' x_opt$T_lambda # 40.50748
 #'
 fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TRUE) {
+  if (n >= nmax(J, N, S)) {
+    stop("Total sample size n is too large")
+  }
+
   if (is.null(kappa)) {
     kappa <- rep(1 / length(unique(J)), length(unique(J)))
   }
@@ -51,9 +55,9 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
   D.matrix <- (a %*% t(a)) / n - diag(c_, nrow = length(c_))
 
   eigenout <- eigen(D.matrix, symmetric = TRUE)
-  lambda <- eigenout$values[1] # largest eigenvalue
+  T_eigenval <- eigenout$values[1] # largest eigenvalue
   v <- eigenout$vectors[, 1] # corresponding eigenvector
-  if (lambda <= 0) {
+  if (T_eigenval <= 0) {
     stop("Largest eigenvalue is not strictly positive - solution does not exist!")
   }
   if (any(diff(sign(v)) != 0)) {
@@ -73,11 +77,11 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
     check_cnstr <- check_kkt(x, J0, N0, S0, total, kappa, n0, active, s_i, details = TRUE)
     A <- (N0 * S0) / rep(rho, times = table(J0))
     list(
-      T_lambda = lambda, Ti = kappa * lambda, check_cnstr = check_cnstr,
+      T_eigenval = T_eigenval, Ti = kappa * T_eigenval, check_cnstr = check_cnstr,
       D.matrix = D.matrix, eigen = eigenout, N_over_A = N0 / A, s_i = s_i, n_ih = x
     )
   } else {
-    list(T_lambda = lambda, n_ih = x)
+    list(T_eigenval = T_eigenval, n_ih = x)
   }
 }
 
