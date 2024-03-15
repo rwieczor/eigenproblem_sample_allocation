@@ -11,7 +11,7 @@
 #' @param short short output
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
+#' J <- c(2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
@@ -21,20 +21,19 @@
 #' (x <- fixprec(n, J, N, S, total, kappa))
 #' x$n_ih # 162.47371 42.55264 142.98313 179.99052
 #' x$check_cnstr
-#' x$T_lambda # 0.8476689
+#' x$T_eigenval # 0.8476689
 #'
 #' (x_opt <- fixprec(n, J, N, S, total, kappa, active = 1))
 #' x_opt$n_ih # 140 106.8521 124.4665 156.6814
 #' x_opt$check_cnstr
-#' x_opt$T_lambda # 40.50748
+#' x_opt$T_eigenval # 40.50748
 #'
 fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TRUE) {
   if (n >= nmax(J, N, S)) {
     stop("Total sample size n is too large")
   }
-
   if (is.null(kappa)) {
-    kappa <- rep(1 / length(unique(J)), length(unique(J)))
+    kappa <- rep(1 / length(J), length(J))
   }
   rho <- total * sqrt(kappa)
   rho2 <- total^2 * kappa
@@ -43,6 +42,7 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
   S0 <- S
   n0 <- n
 
+  J <- domain_indicators(J)
   if (!is.null(active)) {
     n <- n - sum(N[active])
     J <- J[-active]
@@ -75,7 +75,7 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
 
   if (details) {
     check_cnstr <- check_kkt(x, J0, N0, S0, total, kappa, n0, active, s_i, details = TRUE)
-    A <- (N0 * S0) / rep(rho, times = table(J0))
+    A <- (N0 * S0) / rep(rho, times = J0)
     list(
       T_eigenval = T_eigenval, Ti = kappa * T_eigenval, check_cnstr = check_cnstr,
       D.matrix = D.matrix, eigen = eigenout, N_over_A = N0 / A, s_i = s_i, n_ih = x
@@ -88,28 +88,22 @@ fixprec <- function(n, J, N, S, total, kappa = NULL, active = NULL, details = TR
 #' Recursive FIXPREC algorithm (for 2 domains only)
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
+#' J <- c(2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
 #' kappa <- c(0.4, 0.6)
 #' (n <- nmax(J, N, S) - 1)
 #'
-#' (x <- rfixprec(n, J, N, S, total, kappa))
-#' x$x # 140 106.8521 124.4665 156.6814
-#' x$s_i # T = 0.8476689
+#' (x <- rfixprec_2d(n, J, N, S, total, kappa))
+#' x$n_ih # 140 106.8521 124.4665 156.6814
+#' x$s_i # T = 40.5074790
 #'
-rfixprec <- function(n, J, N, S, total, kappa = NULL, domain = 1L) {
-  W <- seq(
-    from = sum(table(J)[0:(domain - 1)]) + 1,
-    length.out = table(J)[domain]
-  ) # all strata in a given domain
-
-  domain2 <- unique(J)[unique(J) != domain] # zalozenie: sa tylko dwie domeny
-  W2 <- seq(
-    from = sum(table(J)[0:(domain2 - 1)]) + 1,
-    length.out = table(J)[domain2]
-  ) # all strata in another domain
+rfixprec_2d <- function(n, J, N, S, total, kappa = NULL, domain = 1L) {
+  W_domains <- lseq_len(J) # list with strata global indices in all domains
+  W <- W_domains[[domain]] # strata global indices in recursive domain
+  domain2 <- ifelse(domain == 1, 2L, 1L) # zalozenie: sa tylko dwie domeny
+  W2 <- W_domains[[domain2]]
   check_for_active2 <- W2
 
   active <- NULL
@@ -153,24 +147,6 @@ rfixprec <- function(n, J, N, S, total, kappa = NULL, domain = 1L) {
   list(n_ih = x, s_i = s_i, active = active_temp)
 }
 
-#' Maximum allowed total sample size
-#'
-#' @details
-#' See (16) from JW 2019. It is usually less than sum(N).
-#'
-#' @examples
-#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
-#' N <- c(140, 110, 135, 190)
-#' S <- sqrt(c(180, 20, 5, 4))
-#' sum(N)
-#' nmax(J, N, S)
-#'
-nmax <- function(J, N, S) {
-  n_bound <- sum(tapply(N * S, J, sum)^2 / tapply(N * S^2, J, sum))
-  n_bound_floor <- floor(n_bound)
-  ifelse(n_bound == n_bound_floor, n_bound - 1, n_bound_floor)
-}
-
 #' Check KKT conditions for FIXPREC problem.
 #'
 #' @return If `details` is `FALSE`, it returns optimal value of T
@@ -178,7 +154,7 @@ nmax <- function(J, N, S) {
 #'  If `details` is `TRUE`, a detailed constraints check is returned.
 #'
 #' @examples
-#' J <- c(1, 1, 2, 2) # two domains with 2 strata each.
+#' J <- c(2, 2) # two domains with 2 strata each.
 #' N <- c(140, 110, 135, 190)
 #' S <- sqrt(c(180, 20, 5, 4))
 #' total <- c(2, 3)
@@ -186,11 +162,11 @@ nmax <- function(J, N, S) {
 #' (n <- nmax(J, N, S) - 1)
 #'
 #' (x <- fixprec(n, J, N, S, total, kappa))
-#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = FALSE)
-#' check_kkt(x$n_ih, J, N, S, total, kappa, n, active = NULL, s = x$s_i, details = TRUE)
+#' check_kkt(x$n_ih, J, N, S, total, kappa, n)
+#' check_kkt(x$n_ih, J, N, S, total, kappa, n, details = TRUE)
 #'
-check_kkt <- function(n_opt, J, N, S, total, kappa, n, active, s, tol = 10^-9, details = FALSE) {
-  Ti_notscaled <- tapply(N^2 / n_opt * S^2 - N * S^2, J, sum)
+check_kkt <- function(n_opt, J, N, S, total, kappa, n, active = NULL, s, tol = 10^-9, details = FALSE) {
+  Ti_notscaled <- tapply(N^2 / n_opt * S^2 - N * S^2, domain_indicators(J), sum)
   Ti <- Ti_notscaled / total^2
   T_opt <- sum(Ti_notscaled) / sum(total^2 * kappa)
 
@@ -203,8 +179,8 @@ check_kkt <- function(n_opt, J, N, S, total, kappa, n, active, s, tol = 10^-9, d
     TRUE
   } else {
     rho <- total * sqrt(kappa)
-    A <- (N * S) / rep(rho, times = table(J))
-    s <- rep(s, times = table(J))
+    A <- (N * S) / rep(rho, times = J)
+    s <- rep(s, times = J)
     all((s >= N / A)[active])
   }
 
@@ -226,32 +202,110 @@ check_kkt <- function(n_opt, J, N, S, total, kappa, n, active, s, tol = 10^-9, d
   }
 }
 
-# List with all possible subsets of J,
-# without subsets that are equal to entire domain (for any domain).
-subsets <- function(J) {
-  J <- J[J %in% names(table(J)[table(J) != 1L])] # remove domains with 1 stratum
-  subsets_i <- tapply(seq_along(J), J, function(i) {
-    m_i <- seq(1, length(i) - 1)
-    do.call(c, lapply(m_i, function(m_ii) combn(i, m_ii, simplify = FALSE)))
-  })
-  subsets_i_len <- sapply(subsets_i, length)
-  subsets_i_indices <- lapply(seq_along(subsets_i), function(i) {
-    seq(
-      from = ifelse(i == 1L, 1, subsets_i_len[i - 1] + 1),
-      length.out = subsets_i_len[i]
-    )
-  })
-  subsets_grid <- do.call(expand.grid, subsets_i_indices) # combination between domains
-  subsets_grid <- as.matrix(subsets_grid)
-  subsets_i <- do.call(c, subsets_i)
-  all_subsets <- c(
-    list(NULL),
-    subsets_i, # separate in domains
-    lapply(1:nrow(subsets_grid), function(r) setNames(unlist(subsets_i[subsets_grid[r, ]]), NULL)) # between domains
+#' Maximum allowed total sample size
+#'
+#' @details
+#' See (16) from JW 2019. It is usually less than sum(N).
+#'
+#' @examples
+#' J <- c(2, 2) # two domains with 2 strata each.
+#' N <- c(140, 110, 135, 190)
+#' S <- sqrt(c(180, 20, 5, 4))
+#' sum(N)
+#' nmax(J, N, S)
+#'
+nmax <- function(J, N, S) {
+  J <- domain_indicators(J)
+  n_bound <- sum(tapply(N * S, J, sum)^2 / tapply(N * S^2, J, sum))
+  n_bound_floor <- floor(n_bound)
+  ifelse(n_bound == n_bound_floor, n_bound - 1, n_bound_floor)
+}
+
+domain_indicators <- function(J) {
+  rep(seq_along(J), times = J)
+}
+
+#' Get globally unique strata indices
+#'
+#' @param J vector with numbers of strata in domains
+#'
+#' @return A `list` with globally unique strata indices in domains.
+#' @examples
+#' J <- c(2, 2, 3) # three domains with 2, 2, and 3 strata respectively
+#' lseq_len(J)
+#'
+lseq_len <- function(J) {
+  mapply(
+    function(to, len) seq.int(to = to, length.out = len, by = 1L),
+    cumsum(J), J,
+    SIMPLIFY = FALSE
   )
-  names(all_subsets) <- NULL
-  if (length(all_subsets) != sum(1, 2^table(J) - 2, prod(2^table(J) - 2))) {
-    stop("Zle obliczone podzbiory")
+}
+
+empty <- function(x) {
+  length(x) == 0L
+}
+
+non_empty <- function(x) {
+  length(x) > 0L
+}
+
+#' Recursive FIXPREC algorithm
+#'
+#' @examples
+#' J <- c(2, 2, 3) # three domains with 2, 2, and 3 strata respectively
+#' N <- c(140, 110, 135, 190, 200, 40, 70)
+#' S <- sqrt(c(180, 20, 5, 4, 35, 9, 40))
+#' total <- c(2, 3, 5)
+#' kappa <- c(0.5, 0.2, 0.3)
+#' (n <- nmax(J, N, S) - 1)
+#'
+#' x <- rfixprec(n, J, N, S, total, kappa)
+#' x # 140 103.60438 132.18060 166.39204 195.95002  19.87296  70
+#' x$T_eigenval # 67.90425
+#'
+rfixprec <- function(n, J, N, S, total, kappa = NULL, recursive_domain = 1L) {
+  stopifnot(length(recursive_domain) == 1L)
+  stopifnot(recursive_domain <= length(J))
+
+  W <- lseq_len(J) # list with strata global indices in all domains
+  W_rec <- W[[recursive_domain]] # recursive domain
+  W_nrec <- W[-recursive_domain] # non recursive domain
+  W_nrec_active <- vector("list", length(W_nrec))
+  I_nrec <- seq_along(W_nrec) # indices of non recursive domains
+
+  repeat {
+    # 1. Allocate in recursive_domain.
+    W_active <- unlist(W_nrec_active)
+    repeat {
+      x <- fixprec(n, J, N, S, total, kappa, W_active)$n_ih
+      violated <- which(x[W_rec] > N[W_rec])
+      if (empty(violated)) {
+        break
+      } else {
+        W_active <- c(W_active, W_rec[violated])
+        # if (all(W_rec %in% W_active)) {
+        #   stop("Wszystkie wiezy aktywne w wyroznionej domenie") # wstepne symulacje pokazuje, ze niemozliwe
+        # }
+      }
+    }
+
+    # 2. Check for violations in remaining (non recursive) domains.
+    for (i in I_nrec) {
+      W_i <- W_nrec[[i]]
+      violated <- which(x[W_i] > N[W_i]) # W_i powinno zostac zmniejszone o active temp
+      if (non_empty(violated)) {
+        if (i >= 2 && empty(W_nrec_active[[i]])) { # wyczysc poprzednie active
+          W_nrec_active[1:(i - 1)] <- list(NULL)
+        }
+        W_nrec_active[[i]] <- c(W_nrec_active[[i]], W_i[violated])
+        break
+      }
+    }
+
+    if (empty(violated)) {
+      break
+    }
   }
-  all_subsets
+  x
 }
