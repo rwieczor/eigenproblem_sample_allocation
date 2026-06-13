@@ -315,8 +315,8 @@ fixprec_SRSWOR <- function(n, data, J = "sub", H = "h", N_jh = "N_jh", S2_jh = "
     stop("Largest eigenvalue is not strictly positive - solution does not exist!")
   }
 
-  cv_opt <- m1$values[1] # maximum eigenvalue
-  # cat("cV optimal (in %)  = ",100*sqrt(cv_opt),"\n")
+  cv_optimal <- m1$values[1] # maximum eigenvalue
+  # cat("cV optimal (in %)  = ",100*sqrt(cv_optimal),"\n")
   cat("CV optimal (in %) for subpopulations:  \n ")
   print(cbind(kappa[[J]], round(100 * sqrt(kappa$kappa * cv_optimal), 2)))
 
